@@ -1,18 +1,17 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
+  Button,
   Text,
-  Link,
+  Input,
   HStack,
   Center,
-  Heading,
-  Switch,
-  useColorMode,
   NativeBaseProvider,
   extendTheme,
   VStack,
-  Box,
 } from "native-base";
-import NativeBaseIcon from "./components/NativeBaseIcon";
+import "react-native-get-random-values"
+import { v4 as uuidv4 } from "uuid"
+import TodoList from "./components/TodoList"
 
 // Define the config
 const config = {
@@ -24,64 +23,66 @@ const config = {
 export const theme = extendTheme({ config });
 type MyThemeType = typeof theme;
 declare module "native-base" {
-  interface ICustomTheme extends MyThemeType {}
+  interface ICustomTheme extends MyThemeType { }
 }
+
+const LOCAL_STORAGE_KEY = 'todoApp.todos'
+
 export default function App() {
+  const [text, onChangeText] = useState<string>("")
+  const [todos, setTodos] = useState<any[]>([])
+
+  ///// The following local storage section only works on web //////
+  // Load todos from local storage
+  // useEffect(() => {
+  //   const storedTodos = localStorage.getItem(LOCAL_STORAGE_KEY)
+  //   if (!storedTodos) return
+  //   const parsedTodos = JSON.parse(storedTodos)
+  //   if (storedTodos) setTodos(prevTodos => [...prevTodos, ...parsedTodos])
+  // }, [])
+
+  // Save todos to local storage whenever the todos change
+  // useEffect(() => {
+  //   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
+  // }, [todos])
+
+  // Handle the click event when a todo is clicked (passed through to TodoList & Todo to actually call this)
+  function toggleTodo(id: string) {
+    const newTodos = [...todos]
+    const todo = newTodos.find(todo => todo.id === id)
+    todo.complete = !todo.complete
+    setTodos(newTodos)
+  }
+
+  // Validates the reference and the input, adds the new todo, and clears the textbox
+  function handleAddTodo() {
+    if (text === "") return
+
+    setTodos(prevTodos => {
+      return [...prevTodos, { id: uuidv4(), name: text, complete: false }]
+    })
+    onChangeText("")
+  }
+
+  // Updates the todo list to only the items that have not been completed
+  function handleClearTodos() {
+    const newTodos = todos.filter(todo => !todo.complete)
+    setTodos(newTodos)
+  }
+
   return (
     <NativeBaseProvider>
-      <Center
-        _dark={{ bg: "blueGray.900" }}
-        _light={{ bg: "blueGray.50" }}
-        px={4}
-        flex={1}
-      >
-        <VStack space={5} alignItems="center">
-          <NativeBaseIcon />
-          <Heading size="lg">Welcome to NativeBase</Heading>
-          <HStack space={2} alignItems="center">
-            <Text>Edit</Text>
-            <Box
-              _web={{
-                _text: {
-                  fontFamily: "monospace",
-                  fontSize: "sm",
-                },
-              }}
-              px={2}
-              py={1}
-              _dark={{ bg: "blueGray.800" }}
-              _light={{ bg: "blueGray.200" }}
-            >
-              App.js
-            </Box>
-            <Text>and save to reload.</Text>
+      <Center flex={1} w="100%">
+        <VStack space={2}>
+          <TodoList todos={todos} toggleTodo={toggleTodo} />
+          <HStack space={2}>
+            <Input type="text" w="20%" value={text} onChangeText={onChangeText} />
+            <Button onPress={handleAddTodo}>Add Todo</Button>
+            <Button onPress={handleClearTodos}>Clear Completed</Button>
           </HStack>
-          <Link href="https://docs.nativebase.io" isExternal>
-            <Text color="primary.500" underline fontSize={"xl"}>
-              Learn NativeBase
-            </Text>
-          </Link>
-          <ToggleDarkMode />
+          <Text>{todos.filter(todo => !todo.complete).length} left todos</Text>
         </VStack>
       </Center>
     </NativeBaseProvider>
-  );
-}
-
-// Color Switch Component
-function ToggleDarkMode() {
-  const { colorMode, toggleColorMode } = useColorMode();
-  return (
-    <HStack space={2} alignItems="center">
-      <Text>Dark</Text>
-      <Switch
-        isChecked={colorMode === "light"}
-        onToggle={toggleColorMode}
-        aria-label={
-          colorMode === "light" ? "switch to dark mode" : "switch to light mode"
-        }
-      />
-      <Text>Light</Text>
-    </HStack>
   );
 }
