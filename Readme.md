@@ -1,6 +1,5 @@
-# NativeBase TypeScript Expo Template
-
-The official NativeBase TypeScript template for [Expo](https://docs.expo.io/)
+# NativeBase TypeScript Expo Todo List App
+Followed [this guide](https://www.youtube.com/watch?v=hQAHSlTtcmY) and adapted it to use Expo & NativeBase.
 
 ## Usage
 
